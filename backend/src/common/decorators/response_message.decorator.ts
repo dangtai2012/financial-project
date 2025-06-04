@@ -1,5 +1,5 @@
-import { RESPONSE_MESSAGE_METADATA } from '@common/constants';
+import { COMMON_CONSTANTS } from '@common/constants';
 import { SetMetadata } from '@nestjs/common';
 
 export const ResponseMessage = (message: string) =>
-  SetMetadata(RESPONSE_MESSAGE_METADATA, message);
+  SetMetadata(COMMON_CONSTANTS.RESPONSE_MESSAGE, message);

@@ -7,6 +7,6 @@ export class UserSeeder implements Seeder {
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,
   ): Promise<any> {
-    await factoryManager.get(UserEntity).saveMany(10);
+    await factoryManager.get(UserEntity).save();
   }
 }

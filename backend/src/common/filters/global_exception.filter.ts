@@ -87,6 +87,8 @@ export class GlobalExceptionFilter<T = any> implements ExceptionFilter<T> {
     let errors: string[];
     let typeError: string;
 
+    console.log(exception);
+
     if (this.isHttpError(exception)) {
       statusCode = exception['statusCode'];
       message = exception.message;

@@ -51,7 +51,7 @@ export class MailService {
    * : Send forgot password email
    */
   async sendMailForgotPassword(user: UserEntity, token: string) {
-    const resetLink = `${this.defaultLink}/auth/reset_password/${token}`;
+    const resetLink = `${this.defaultLink}/auth/reset_password?token=${token}&email=${user.email}`;
 
     await this.mailerService.sendMail({
       to: user.email,

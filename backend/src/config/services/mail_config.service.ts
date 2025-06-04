@@ -25,4 +25,8 @@ export class MailConfigService {
   getMailVerifyExpiration(): number {
     return this.configService.get<IMailConfig>('mail')!.mailVerifyExpiration;
   }
+
+  getPasswordResetExpiration(): number {
+    return this.configService.get<IMailConfig>('mail')!.passwordResetExpiration;
+  }
 }

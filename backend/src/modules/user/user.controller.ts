@@ -1,4 +1,4 @@
-import { ResponseMessage, Serialize } from '@common/decorators';
+import { Auth, ResponseMessage, Serialize } from '@common/decorators';
 import { PageRequestDto, SearchRequestDto } from '@common/dtos/requests';
 import {
   ApiErrorResponse,
@@ -9,8 +9,10 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiExtraModels } from '@nestjs/swagger';
 import { UserResponseDto } from './dtos/responses';
 import { UserService } from './user.service';
+import { EAuth } from '@common/constants/enums';
 
 @ApiBearerAuth()
+@Auth(EAuth.IS_PRIVATE)
 @Controller('user')
 export class UserController {
   constructor(

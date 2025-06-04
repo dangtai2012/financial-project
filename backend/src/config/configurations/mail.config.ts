@@ -9,5 +9,9 @@ export const mailConfig = registerAs(
     smtpUser: process.env.SMTP_USER!,
     smtpPassword: process.env.SMTP_PASSWORD!,
     mailVerifyExpiration: parseInt(process.env.MAIL_VERIFY_EXPIRATION!, 10),
+    passwordResetExpiration: parseInt(
+      process.env.PASSWORD_RESET_EXPIRATION!,
+      10,
+    ),
   }),
 );
