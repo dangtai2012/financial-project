@@ -1,4 +1,4 @@
-import { RESPONSE_MESSAGE_METADATA } from '@common/constants';
+import { COMMON_CONSTANTS } from '@common/constants';
 import { EStatus } from '@common/constants/enums';
 import {
   DevSuccessResponseDto,
@@ -26,7 +26,7 @@ export class GlobalResponseInterceptor<T> implements NestInterceptor<T, any> {
     return next.handle().pipe(
       map((data: unknown) => {
         const message = this.reflector.get<string>(
-          RESPONSE_MESSAGE_METADATA,
+          COMMON_CONSTANTS.RESPONSE_MESSAGE,
           context.getHandler(),
         );
 

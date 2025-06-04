@@ -2,7 +2,7 @@ import { PageRequestDto } from '@common/dtos/requests';
 import { UserEntity } from '@database/entities';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CacheService } from '@shared/cache/cache.service';
-import { UserRepository } from './repositories';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {

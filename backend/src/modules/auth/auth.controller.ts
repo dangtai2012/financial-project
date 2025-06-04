@@ -1,5 +1,6 @@
-import { AUTH } from '@common/constants';
-import { Public, ResponseMessage, Serialize } from '@common/decorators';
+import { COMMON_CONSTANTS } from '@common/constants';
+import { EAuth } from '@common/constants/enums';
+import { Auth, ResponseMessage, Serialize } from '@common/decorators';
 import { ApiErrorResponse, ApiSuccessResponse } from '@common/dtos/responses';
 import { UserEntity } from '@database/entities';
 import {
@@ -10,6 +11,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -30,6 +32,7 @@ import {
   RegisterResponseDto,
 } from './dtos/responses';
 
+@Auth(EAuth.IS_PUBLIC)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -49,7 +52,6 @@ export class AuthController {
   @Serialize(RegisterResponseDto)
   @ResponseMessage('Register successful')
   @HttpCode(HttpStatus.CREATED)
-  @Public()
   @Post('register')
   async register(@Body() registerRequestDto: RegisterRequestDto) {
     return this.authService.register(registerRequestDto);
@@ -66,10 +68,11 @@ export class AuthController {
   @ResponseMessage('Login successful')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('local'))
-  @Public()
   @Post('login')
   async login(@Req() req: Request, @Body() loginRequestDto: LoginRequestDto) {
-    return await this.authService.login(req[AUTH.CURRENT_USER] as UserEntity);
+    return await this.authService.login(
+      req[COMMON_CONSTANTS.CURRENT_USER] as UserEntity,
+    );
   }
   // #endregion
 
@@ -82,7 +85,6 @@ export class AuthController {
   @Serialize(RefreshTokenResponseDto)
   @ResponseMessage('Refresh token successful')
   @HttpCode(HttpStatus.OK)
-  @Public()
   @Post('refresh_token')
   async refreshToken(@Body() refreshTokenRequestDto: RefreshTokenRequestDto) {
     return await this.authService.refreshToken(refreshTokenRequestDto);
@@ -94,8 +96,10 @@ export class AuthController {
    * : Logout
    */
 
+  @ApiErrorResponse()
+  @ApiSuccessResponse(Object)
   @ResponseMessage('Logout successful')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(
     @Req() req: Request,
@@ -118,7 +122,6 @@ export class AuthController {
   @ApiSuccessResponse(Object)
   @ResponseMessage('Email verified successfully')
   @HttpCode(HttpStatus.OK)
-  @Public()
   @Get('verify_email/:token')
   async verifyEmail(@Param('token') token: string) {
     await this.authService.verifyEmail(token);
@@ -133,12 +136,11 @@ export class AuthController {
   @ApiSuccessResponse(Object)
   @ResponseMessage('Reset password email sent successfully')
   @HttpCode(HttpStatus.OK)
-  @Public()
   @Get('forgot_password')
   async forgotPassword(
     @Body() forgotPasswordRequestDto: ForgotPasswordRequestDto,
   ) {
-    await this.authService.forgotPassword(forgotPasswordRequestDto);
+    return await this.authService.forgotPassword(forgotPasswordRequestDto);
   }
   // #endregion
 
@@ -150,13 +152,12 @@ export class AuthController {
   @ApiSuccessResponse(Object)
   @ResponseMessage('Password reset successfully')
   @HttpCode(HttpStatus.OK)
-  @Public()
-  @Post('reset_password/:token')
+  @Post('reset_password')
   async resetPassword(
-    @Param('token') token: string,
+    @Query() query: Record<string, string>,
     @Body() resetPasswordRequestDto: ResetPasswordRequestDto,
   ) {
-    await this.authService.resetPassword(token, resetPasswordRequestDto);
+    return await this.authService.resetPassword(query, resetPasswordRequestDto);
   }
   // #endregion
 
@@ -168,6 +169,7 @@ export class AuthController {
   @ApiSuccessResponse(Object)
   @ResponseMessage('Password changed successfully')
   @HttpCode(HttpStatus.OK)
+  @Auth(EAuth.IS_PRIVATE)
   @Post('change_password')
   async changePassword(
     @Req() req: Request,

@@ -15,6 +15,16 @@ export class UserEntity extends TypeOrmBaseEntity {
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;
 
-  @Column({ name: 'password_change_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'password_reset_token', type: 'varchar', nullable: true })
+  passwordResetToken: string;
+
+  @Column({
+    name: 'password_reset_token_expires_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  passwordResetTokenExpiresAt: Date;
+
+  @Column({ name: 'password_change_at', type: 'timestamptz', nullable: true })
   passwordChangedAt: Date;
 }

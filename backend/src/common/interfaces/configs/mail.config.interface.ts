@@ -4,4 +4,5 @@ export interface IMailConfig {
   smtpUser: string;
   smtpPassword: string;
   mailVerifyExpiration: number;
+  passwordResetExpiration: number;
 }

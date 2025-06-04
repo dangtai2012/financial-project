@@ -1,7 +1,7 @@
 import { REDIS } from '@common/constants';
 import { IJwtPayload } from '@common/interfaces/auth';
 import { JwtConfigService } from '@config/services';
-import { UserRepository } from '@modules/user/repositories';
+import { UserRepository } from '@modules/user/user.repository';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { CacheService } from '@shared/cache/cache.service';
@@ -48,11 +48,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid token st');
+      throw new UnauthorizedException('Invalid token (st)');
     }
 
     if (!user.isVerified) {
-      throw new UnauthorizedException('Account is not verified');
+      throw new UnauthorizedException('Account is not verified (st)');
     }
 
     // Check blacklist access token
@@ -61,7 +61,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     if (isBlacklisted) {
-      throw new UnauthorizedException('Invalid token bl');
+      throw new UnauthorizedException('Invalid token (st)');
     }
 
     // Check password changed time
@@ -70,7 +70,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       user.passwordChangedAt.getTime() > accessTokenIat! * 1000
     ) {
       throw new UnauthorizedException(
-        'Password has been changed, please login again st',
+        'Password has been changed, please login again! (st)',
       );
     }
 

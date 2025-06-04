@@ -12,7 +12,6 @@ import { JwtService } from '@nestjs/jwt';
 import { CacheService } from '@shared/cache/cache.service';
 import { LoggerService } from '@shared/logger/logger.service';
 import { MailService } from '@shared/mail/mail.service';
-import { UserRepository } from '../user/repositories';
 import {
   ChangePasswordRequestDto,
   ForgotPasswordRequestDto,
@@ -21,6 +20,8 @@ import {
   ResetPasswordRequestDto,
 } from './dtos/requests';
 import { HashingProvider } from './providers/abstracts';
+import { UserRepository } from '@modules/user/user.repository';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -112,6 +113,8 @@ export class AuthService {
         existingUser,
         verificationToken,
       );
+
+      return {};
     }
 
     const hashedPassword = await this.hashingProvider.hashPassword(
@@ -131,9 +134,7 @@ export class AuthService {
       verificationToken,
     );
 
-    const { password, ...user } = savedUser;
-
-    return user;
+    return {};
   }
   //#endregion
 
@@ -151,15 +152,13 @@ export class AuthService {
    * : Refresh Token
    */
   async refreshToken(refreshTokenRequestDto: RefreshTokenRequestDto) {
-    const { sub, jti, iat } = await this.jwtService.verifyAsync(
-      refreshTokenRequestDto.refreshToken,
-    );
-
-    if (!sub || !jti) {
-      throw new UnauthorizedException(
-        'Invalid or expired refresh token payload',
-      );
-    }
+    const { sub, jti, iat } = await this.jwtService
+      .verifyAsync(refreshTokenRequestDto.refreshToken)
+      .catch(() => {
+        throw new UnauthorizedException(
+          'Invalid or expired refresh token payload (sv)',
+        );
+      });
 
     const user = await this.userRepo.findOne({
       where: { id: sub },
@@ -167,7 +166,9 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid or expired refresh token user');
+      throw new UnauthorizedException(
+        'Invalid or expired refresh token user (sv)',
+      );
     }
 
     if (
@@ -177,7 +178,7 @@ export class AuthService {
       await this.cacheService.del(`${REDIS.WHITELIST}:refresh_token:${jti}`);
 
       throw new UnauthorizedException(
-        'Password has been changed, please login again rt',
+        'Password has been changed, please login again! (sv)',
       );
     }
 
@@ -186,7 +187,7 @@ export class AuthService {
     );
 
     if (!cachedUserId || cachedUserId !== sub) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('Invalid or expired refresh token (sv)');
     }
 
     await this.cacheService.del(`${REDIS.WHITELIST}:refresh_token:${jti}`);
@@ -226,6 +227,8 @@ export class AuthService {
     await this.cacheService.del(
       `${REDIS.WHITELIST}:refresh_token:${refreshTokenJti}`,
     );
+
+    return {};
   }
   //#endregion
 
@@ -234,24 +237,24 @@ export class AuthService {
    * : Verify Email
    */
   async verifyEmail(token: string): Promise<UserEntity> {
-    const payload = this.jwtService.verify(token, {
-      secret: this.jwtConfigService.getSecret(),
+    const payload = await this.jwtService.verifyAsync(token).catch(() => {
+      throw new UnauthorizedException(
+        'Invalid or expired verification token (sv)',
+      );
     });
-
-    if (!payload || !payload.email) {
-      throw new UnauthorizedException('Invalid or expired verification token');
-    }
 
     const user = await this.userRepo.findOne({
       where: { email: payload.email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid verification token');
+      throw new UnauthorizedException(
+        'Invalid or expired verification token (sv)',
+      );
     }
 
     if (user.isVerified) {
-      throw new ConflictException('Account already verified');
+      throw new ConflictException('Account already verified (sv)');
     }
 
     user.isVerified = true;
@@ -266,20 +269,33 @@ export class AuthService {
    * : Forgot Password
    */
   async forgotPassword(forgotPasswordRequestDto: ForgotPasswordRequestDto) {
+    const { email } = forgotPasswordRequestDto;
+
     const user = await this.userRepo.findOne({
-      where: { email: forgotPasswordRequestDto.email },
+      where: { email },
     });
 
     if (!user) {
       throw new UnauthorizedException('Invalid email');
     }
 
-    const forgotToken = await this.jwtService.signAsync(
-      { email: user.email },
-      { expiresIn: this.mailConfigService.getMailVerifyExpiration() },
+    const passwordResetToken = crypto.randomBytes(16).toString('hex');
+
+    await this.mailService.sendMailForgotPassword(user, passwordResetToken);
+
+    const hashPasswordResetToken =
+      await this.hashingProvider.hashPassword(passwordResetToken);
+
+    const passwordResetTokenExpiresAt = new Date(
+      Date.now() + this.mailConfigService.getPasswordResetExpiration(),
     );
 
-    await this.mailService.sendMailForgotPassword(user, forgotToken);
+    user.passwordResetToken = hashPasswordResetToken;
+    user.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt;
+
+    await this.userRepo.save(user);
+
+    return {};
   }
   // #endregion
 
@@ -288,17 +304,13 @@ export class AuthService {
    * : Reset Password
    */
   async resetPassword(
-    token: string,
+    query: Record<string, string>,
     resetPasswordRequestDto: ResetPasswordRequestDto,
   ) {
-    const payload = this.jwtService.verify(token);
-
-    if (!payload || !payload.email) {
-      throw new UnauthorizedException('Invalid or expired reset token');
-    }
+    const { token, email } = query;
 
     const user = await this.userRepo.findOne({
-      where: { email: payload.email },
+      where: { email },
     });
 
     if (!user) {
@@ -314,14 +326,36 @@ export class AuthService {
       );
     }
 
+    const isResetTokenValid = await this.hashingProvider.comparePassword(
+      token,
+      user.passwordResetToken,
+    );
+
+    if (!isResetTokenValid) {
+      throw new UnauthorizedException('Invalid reset token');
+    }
+
+    const passwordResetTokenExpiresAt = user.passwordResetTokenExpiresAt;
+
+    if (
+      passwordResetTokenExpiresAt &&
+      passwordResetTokenExpiresAt.getTime() < Date.now()
+    ) {
+      throw new UnauthorizedException('Reset token has expired');
+    }
+
+    user.passwordResetToken = null as any;
+    user.passwordResetTokenExpiresAt = null as any;
     user.password = await this.hashingProvider.hashPassword(
       resetPasswordRequestDto.newPassword,
     );
 
-    const resetDate = Math.floor(Date.now() / 1000);
-    user.passwordChangedAt = new Date(resetDate * 1000);
+    const passwordChangedAt = Math.floor(Date.now() / 1000);
+    user.passwordChangedAt = new Date(passwordChangedAt * 1000);
 
     await this.userRepo.save(user);
+
+    return {};
   }
   // #endregion
 

@@ -6,4 +6,5 @@ export const MailConfigValidation = {
   SMTP_USER: Joi.string().required(),
   SMTP_PASSWORD: Joi.string().required(),
   MAIL_VERIFY_EXPIRATION: Joi.number().required(),
+  PASSWORD_RESET_EXPIRATION: Joi.number().required(),
 };
