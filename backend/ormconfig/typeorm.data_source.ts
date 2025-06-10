@@ -2,8 +2,8 @@ import * as dotenv from 'dotenv';
 import { join } from 'path';
 import { DataSourceOptions } from 'typeorm';
 import { SeederOptions } from 'typeorm-extension';
-import { UserFactory } from './seeds/factories/user.factory';
-import { UserSeeder } from './seeds/seeders/user.seeder';
+import { factories } from './seeds/factories';
+import { MainSeeder } from './seeds/seeders/main_seeder';
 
 dotenv.config();
 
@@ -16,6 +16,6 @@ export const typeormOptions: DataSourceOptions & SeederOptions = {
   database: process.env.DB_DATABASE,
   entities: [join(__dirname, '../src/database/entities/**/*.entity{.ts,.js}')],
   migrations: [join(__dirname, '/migrations/**/*{.ts,.js}')],
-  factories: [UserFactory],
-  seeds: [UserSeeder],
+  factories: factories,
+  seeds: [MainSeeder],
 };

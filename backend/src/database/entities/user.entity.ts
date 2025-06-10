@@ -1,9 +1,10 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { TypeOrmBaseEntity } from './typeorm_base.entity';
+import { WalletEntity } from '.';
 
 @Entity({ name: 'users' })
 export class UserEntity extends TypeOrmBaseEntity {
-  @Column({ name: 'name', type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'name', type: 'varchar', length: 100 })
   name: string;
 
   @Column({ name: 'email', type: 'varchar', length: 255, unique: true })
@@ -27,4 +28,12 @@ export class UserEntity extends TypeOrmBaseEntity {
 
   @Column({ name: 'password_change_at', type: 'timestamptz', nullable: true })
   passwordChangedAt: Date;
+
+  //#region Relations
+
+  //: OneToMany
+  @OneToMany(() => WalletEntity, (wallet) => wallet.userId)
+  wallets: WalletEntity[];
+
+  //#region
 }

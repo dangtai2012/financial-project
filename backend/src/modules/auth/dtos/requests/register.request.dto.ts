@@ -4,13 +4,12 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
-  IsUppercase,
   Matches,
   MinLength,
 } from 'class-validator';
 
 export class RegisterRequestDto {
-  @ApiProperty({ name: 'email', type: String, example: 'alan@mail.com' })
+  @ApiProperty({ name: 'email', type: String, example: 'test@mail.com' })
   @Expose({ name: 'email' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsEmail({}, { message: 'Invalid email format.' })
@@ -29,7 +28,7 @@ export class RegisterRequestDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ name: 'name', type: String, example: 'Alan' })
+  @ApiProperty({ name: 'name', type: String, example: 'Test' })
   @Expose({ name: 'name' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()

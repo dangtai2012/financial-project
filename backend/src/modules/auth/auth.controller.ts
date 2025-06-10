@@ -54,7 +54,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
   async register(@Body() registerRequestDto: RegisterRequestDto) {
-    return this.authService.register(registerRequestDto);
+    return await this.authService.register(registerRequestDto);
   }
   //#endregion
 

@@ -4,7 +4,7 @@ import { UserEntity } from '../../../src/database/entities';
 
 export const UserFactory = setSeederFactory(UserEntity, async () => {
   const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash('password', salt);
+  const hashedPassword = await bcrypt.hash('P@ssw0rd1', salt);
 
   const user = new UserEntity();
   user.name = 'A Lăng đi bộ';

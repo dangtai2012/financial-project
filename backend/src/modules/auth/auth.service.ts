@@ -114,7 +114,7 @@ export class AuthService {
         verificationToken,
       );
 
-      return {};
+      return existingUser;
     }
 
     const hashedPassword = await this.hashingProvider.hashPassword(
@@ -134,7 +134,7 @@ export class AuthService {
       verificationToken,
     );
 
-    return {};
+    return savedUser;
   }
   //#endregion
 
