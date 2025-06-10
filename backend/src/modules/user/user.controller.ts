@@ -42,13 +42,13 @@ export class UserController {
    * : Find All Users
    */
 
-  @ApiErrorResponse()
-  @ApiPaginatedSuccessResponse(UserResponseDto)
-  @Serialize(UserResponseDto)
-  @ResponseMessage('Users found successfully')
-  @Get()
-  async findAllUsers(@Query() pageRequestDto: SearchRequestDto) {
-    return await this.userService.findAllUsers(pageRequestDto);
-  }
+  // @ApiErrorResponse()
+  // @ApiPaginatedSuccessResponse(UserResponseDto)
+  // @Serialize(UserResponseDto)
+  // @ResponseMessage('Users found successfully')
+  // @Get()
+  // async findAllUsers(@Query() pageRequestDto: SearchRequestDto) {
+  //   return await this.userService.findAllUsers(pageRequestDto);
+  // }
   // #endregion
 }

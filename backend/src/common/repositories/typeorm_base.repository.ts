@@ -1,7 +1,16 @@
 import { PageMetaDto } from '@common/dtos/paginations';
 import { PageRequestDto, SearchRequestDto } from '@common/dtos/requests';
 import { PageResponseDto } from '@common/dtos/responses';
-import { DeepPartial, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import {
+  DeepPartial,
+  FindManyOptions,
+  FindOneOptions,
+  FindOptionsOrder,
+  FindOptionsWhere,
+  ILike,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { TypeOrmBaseEntity } from '../../database/entities/typeorm_base.entity';
 
 export abstract class TypeOrmBaseRepository<T extends TypeOrmBaseEntity> {
@@ -120,55 +129,115 @@ export abstract class TypeOrmBaseRepository<T extends TypeOrmBaseEntity> {
 
   //#endregion
 
-  //#region paginate
+  //#region paginateForQuery
   /**
-   * : Paginate
+   * : Paginate for Query
    */
-  async paginate(pageRequestDto: PageRequestDto): Promise<PageResponseDto<T>> {
-    const { skip, take, page } = pageRequestDto;
+  async paginateForQuery(
+    pageRequestDto: PageRequestDto<T>,
+    query: SelectQueryBuilder<T>,
+  ): Promise<PageResponseDto<T>> {
+    const { take, page, order, orderBy } = pageRequestDto;
 
-    const [items, total] = await this.repository.findAndCount({
-      skip,
-      take,
-    });
+    const total = await query.clone().getCount();
 
-    const meta = new PageMetaDto(take!, total, page!);
+    const items = await query
+      .skip(take! * (page! - 1))
+      .take(take)
+      .orderBy(`${query.alias}.${String(orderBy)}`, order)
+      .getMany();
 
-    return new PageResponseDto(items, meta);
+    const pageMeta = new PageMetaDto(take!, total, page!);
+
+    return new PageResponseDto(items, pageMeta);
   }
   //#endregion
 
-  // #region search
+  // #region paginateForEntity
   /**
-   * : Search
+   * : Paginate for Entity
    */
-  async search(
-    searchRequestDto: SearchRequestDto,
-    searchFields: (keyof T)[],
+  async paginateForEntity(
+    pageRequestDto: PageRequestDto<T>,
+    options?: FindManyOptions<T>,
   ): Promise<PageResponseDto<T>> {
-    const { skip, take, page, search } = searchRequestDto;
+    const { take, page, order, orderBy } = pageRequestDto;
+
+    const findOptions: FindManyOptions<T> = {
+      ...options,
+      skip: take! * (page! - 1),
+      take: take,
+      order: {
+        [orderBy as string]: order,
+      } as FindOptionsOrder<T>,
+    };
+
+    const [items, total] = await this.repository.findAndCount(findOptions);
+
+    const pageMeta = new PageMetaDto(take!, total, page!);
+
+    return new PageResponseDto(items, pageMeta);
+  }
+  // #endregion
+
+  // #region searchForQuery
+  /**
+   * : Search for Query
+   */
+  async searchForQuery(
+    searchRequestDto: SearchRequestDto<T>,
+    searchFields: (keyof T)[],
+    query: SelectQueryBuilder<T>,
+  ): Promise<PageResponseDto<T>> {
+    const { search } = searchRequestDto;
 
     if (!search) {
-      return this.paginate(searchRequestDto);
+      return this.paginateForQuery(searchRequestDto, query);
     }
 
-    const where: FindOptionsWhere<T>[] = [];
+    const whereConditionForSearch: FindOptionsWhere<T>[] = [];
 
     for (const field of searchFields) {
-      where.push({
+      whereConditionForSearch.push({
         [field]: ILike(`%${search}%`),
       } as FindOptionsWhere<T>);
     }
 
-    const [items, total] = await this.repository.findAndCount({
-      where,
-      skip,
-      take,
-    });
+    query.where(whereConditionForSearch);
 
-    const meta = new PageMetaDto(take!, total, page!);
+    return this.paginateForQuery(searchRequestDto, query);
+  }
+  // #endregion
 
-    return new PageResponseDto(items, meta);
+  // #region searchForEntity
+  /**
+   * : Search for Entity
+   */
+  async searchForEntity(
+    searchRequestDto: SearchRequestDto<T>,
+    searchFields: (keyof T)[],
+    options?: FindManyOptions<T>,
+  ): Promise<PageResponseDto<T>> {
+    const { search } = searchRequestDto;
+
+    if (!search) {
+      return this.paginateForEntity(searchRequestDto, options);
+    }
+
+    const whereConditionForSearch: FindOptionsWhere<T>[] = [];
+
+    for (const field of searchFields) {
+      whereConditionForSearch.push({
+        [field]: ILike(`%${search}%`),
+      } as FindOptionsWhere<T>);
+    }
+
+    const findOptions: FindManyOptions<T> = {
+      ...options,
+      where: whereConditionForSearch,
+    };
+
+    return this.paginateForEntity(searchRequestDto, findOptions);
   }
   // #endregion
 }

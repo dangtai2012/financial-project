@@ -45,8 +45,8 @@ export class UserService {
   /**
    * : Find All Users
    */
-  async findAllUsers(pageRequestDto: PageRequestDto) {
-    return this.userRepo.paginate(pageRequestDto);
-  }
+  // async findAllUsers(pageRequestDto: PageRequestDto) {
+  //   return this.userRepo.paginate(pageRequestDto);
+  // }
   // #endregion
 }
