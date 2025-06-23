@@ -12,6 +12,6 @@ export class UserRepository extends TypeOrmBaseRepository<UserEntity> {
   }
 
   async findOneByEmail(email: string): Promise<UserEntity | null> {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { usrEmail: email } });
   }
 }

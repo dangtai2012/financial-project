@@ -1,13 +1,13 @@
 import {
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
   BaseEntity,
+  CreateDateColumn,
+  DeleteDateColumn,
+  PrimaryColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export abstract class TypeOrmBaseEntity extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ name: 'id', type: 'varchar', length: 21 })
   id: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

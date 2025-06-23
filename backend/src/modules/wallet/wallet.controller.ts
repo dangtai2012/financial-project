@@ -5,14 +5,8 @@ import {
   ResponseMessage,
   Serialize,
 } from '@common/decorators';
-import { SearchRequestDto } from '@common/dtos/requests';
-import {
-  ApiErrorResponse,
-  ApiPaginatedSuccessResponse,
-  ApiSuccessResponse,
-} from '@common/dtos/responses';
+import { ApiErrorResponse, ApiSuccessResponse } from '@common/dtos/responses';
 import { IJwtPayload } from '@common/interfaces/auth';
-import { WalletEntity } from '@database/entities';
 import {
   Body,
   Controller,
@@ -20,14 +14,20 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { CreateWalletRequestDto } from './dtos/requests';
+import {
+  CreateWalletRequestDto,
+  UpdateWalletRequestDto,
+} from './dtos/requests';
 import {
   CreateWalletResponseDto,
-  GetPaginatedeWalletsResponseDto,
+  GetAllWalletResponseDto,
+  UpdateWalletResponseDto,
 } from './dtos/responses';
 import { WalletService } from './wallet.service';
 
@@ -62,24 +62,18 @@ export class WalletController {
   }
   // #endregion
 
-  // #region getPaginatedWallets
+  // #region  getAllWalletByUserId
   /**
-   * : Get paginated wallets
+   * : Get all wallet by user ID
    */
   @ApiErrorResponse()
-  @ApiPaginatedSuccessResponse(GetPaginatedeWalletsResponseDto)
-  @Serialize(GetPaginatedeWalletsResponseDto)
+  @ApiSuccessResponse(GetAllWalletResponseDto)
+  @Serialize(GetAllWalletResponseDto)
   @ResponseMessage('Wallets retrieved successfully')
   @HttpCode(HttpStatus.OK)
-  @Get('get_paginated_wallets')
-  async getPaginatedWallets(
-    @CurrentUser() currentUser: IJwtPayload,
-    @Query() searchRequestDto: SearchRequestDto<WalletEntity>,
-  ) {
-    return await this.walletService.getPaginatedWallets(
-      currentUser,
-      searchRequestDto,
-    );
+  @Get('get_all_wallet')
+  async getAllWalletByUserId(@CurrentUser() currentUser: IJwtPayload) {
+    return await this.walletService.getAllWalletByUserId(currentUser);
   }
   // #endregion
 
@@ -87,18 +81,23 @@ export class WalletController {
   /**
    * : Update a wallet
    */
-
-  // @HttpCode(HttpStatus.ACCEPTED)
-  // @Post('update_wallet')
-  // async updateWallet(
-  //   @CurrentUser() currentUser: IJwtPayload,
-  //   @Body() updateWalletRequestDto: UpdateWalletRequestDto,
-  // ) {
-  //   return await this.walletService.updateWallet(
-  //     currentUser,
-  //     updateWalletRequestDto,
-  //   );
-  // }
+  @ApiErrorResponse()
+  @ApiSuccessResponse(UpdateWalletResponseDto)
+  @Serialize(UpdateWalletResponseDto)
+  @ResponseMessage('Wallet updated successfully')
+  @HttpCode(HttpStatus.OK)
+  @Patch('update_wallet/:wallet_id')
+  async updateWallet(
+    @CurrentUser() currentUser: IJwtPayload,
+    @Param('wallet_id') walletId: string,
+    @Body() updateWalletRequestDto: UpdateWalletRequestDto,
+  ) {
+    return await this.walletService.updateWallet(
+      currentUser,
+      walletId,
+      updateWalletRequestDto,
+    );
+  }
 
   // #endregion
 

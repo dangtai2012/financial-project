@@ -10,7 +10,7 @@ import { HttpRequestLoggingMiddleware } from './common/middlewares';
 import { DatabaseModule } from './database/database.module';
 import { modules } from './modules';
 import { shareds } from './shared';
-import { CurrencyModule } from './modules/currency/currency.module';
+import { IdGeneratorModule } from './shared/id_generator/id_generator.module';
 
 @Module({
   imports: [DatabaseModule, ...shareds, ...modules],

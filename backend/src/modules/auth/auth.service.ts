@@ -1,7 +1,9 @@
 import { REDIS } from '@common/constants';
+import { EEntityPrefix } from '@common/constants/enums';
 import { JwtConfigService, MailConfigService } from '@config/services';
 import { UserEntity } from '@database/entities';
 import { uuid } from '@helpers/index';
+import { UserRepository } from '@modules/user/user.repository';
 import {
   BadRequestException,
   ConflictException,
@@ -10,8 +12,10 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from '@shared/cache/cache.service';
+import { IdGeneratorService } from '@shared/id_generator/id_generator.service';
 import { LoggerService } from '@shared/logger/logger.service';
 import { MailService } from '@shared/mail/mail.service';
+import * as crypto from 'crypto';
 import {
   ChangePasswordRequestDto,
   ForgotPasswordRequestDto,
@@ -20,8 +24,6 @@ import {
   ResetPasswordRequestDto,
 } from './dtos/requests';
 import { HashingProvider } from './providers/abstracts';
-import { UserRepository } from '@modules/user/user.repository';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -56,6 +58,7 @@ export class AuthService {
     /**
      * : Services
      */
+    private readonly idGeneratorService: IdGeneratorService,
     private readonly jwtService: JwtService,
     private readonly cacheService: CacheService,
     private readonly mailService: MailService,
@@ -70,7 +73,7 @@ export class AuthService {
    * : Validate Email and Password
    */
   async validateEmailAndPassword(email: string, password: string) {
-    const user = await this.userRepo.findOne({ where: { email } });
+    const user = await this.userRepo.findOne({ where: { usrEmail: email } });
 
     if (!user) {
       throw new UnauthorizedException('Invalid email');
@@ -78,7 +81,7 @@ export class AuthService {
 
     const isPasswordValid = await this.hashingProvider.comparePassword(
       password,
-      user.password,
+      user.usrPassword,
     );
 
     if (!isPasswordValid) {
@@ -96,7 +99,7 @@ export class AuthService {
 
   async register(registerRequestDto: RegisterRequestDto) {
     const existingUser = await this.userRepo.findOne({
-      where: { email: registerRequestDto.email },
+      where: { usrEmail: registerRequestDto.email },
     });
 
     const verificationToken = await this.jwtService.signAsync(
@@ -121,10 +124,13 @@ export class AuthService {
       registerRequestDto.password,
     );
 
+    const userId = await this.idGeneratorService.generate(EEntityPrefix.USER);
+
     const createUser = this.userRepo.create({
-      name: registerRequestDto.name,
-      email: registerRequestDto.email,
-      password: hashedPassword,
+      id: userId,
+      usrName: registerRequestDto.name,
+      usrEmail: registerRequestDto.email,
+      usrPassword: hashedPassword,
     });
 
     const savedUser = await this.userRepo.save(createUser);
@@ -244,7 +250,7 @@ export class AuthService {
     });
 
     const user = await this.userRepo.findOne({
-      where: { email: payload.email },
+      where: { usrEmail: payload.email },
     });
 
     if (!user) {
@@ -272,7 +278,7 @@ export class AuthService {
     const { email } = forgotPasswordRequestDto;
 
     const user = await this.userRepo.findOne({
-      where: { email },
+      where: { usrEmail: email },
     });
 
     if (!user) {
@@ -310,7 +316,7 @@ export class AuthService {
     const { token, email } = query;
 
     const user = await this.userRepo.findOne({
-      where: { email },
+      where: { usrEmail: email },
     });
 
     if (!user) {
@@ -346,7 +352,7 @@ export class AuthService {
 
     user.passwordResetToken = null as any;
     user.passwordResetTokenExpiresAt = null as any;
-    user.password = await this.hashingProvider.hashPassword(
+    user.usrPassword = await this.hashingProvider.hashPassword(
       resetPasswordRequestDto.newPassword,
     );
 
@@ -387,7 +393,7 @@ export class AuthService {
 
     const isOldPasswordValid = await this.hashingProvider.comparePassword(
       changePasswordRequestDto.oldPassword,
-      user.password,
+      user.usrPassword,
     );
 
     if (!isOldPasswordValid) {
@@ -403,7 +409,7 @@ export class AuthService {
       );
     }
 
-    user.password = await this.hashingProvider.hashPassword(
+    user.usrPassword = await this.hashingProvider.hashPassword(
       changePasswordRequestDto.newPassword,
     );
 
@@ -446,7 +452,7 @@ export class AuthService {
         {
           sub: user.id,
           jti: accessTokenJti,
-          email: user.email,
+          email: user.usrEmail,
         },
         {
           expiresIn: accessTokenExpiresIn,
