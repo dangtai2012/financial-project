@@ -33,12 +33,12 @@ export class MailService {
     const verificationLink = `${this.defaultLink}/auth/verify_email/${token}`;
 
     await this.mailerService.sendMail({
-      to: user.email,
+      to: user.usrEmail,
       subject: `Welcome to ${this.appConfigService.getAppName()}`,
       template: './welcome_and_verify',
       context: {
         app_name: this.appConfigService.getAppName(),
-        username: user.name,
+        username: user.usrName,
         verification_link: verificationLink,
         expired_in: this.mailerConfigService.getMailVerifyExpiration(),
       },
@@ -51,15 +51,15 @@ export class MailService {
    * : Send forgot password email
    */
   async sendMailForgotPassword(user: UserEntity, token: string) {
-    const resetLink = `${this.defaultLink}/auth/reset_password?token=${token}&email=${user.email}`;
+    const resetLink = `${this.defaultLink}/auth/reset_password?token=${token}&email=${user.usrEmail}`;
 
     await this.mailerService.sendMail({
-      to: user.email,
+      to: user.usrEmail,
       subject: `Reset your password`,
       template: './reset_password',
       context: {
         app_name: this.appConfigService.getAppName(),
-        username: user.name,
+        username: user.usrName,
         reset_link: resetLink,
         expired_in: this.mailerConfigService.getMailVerifyExpiration(),
       },

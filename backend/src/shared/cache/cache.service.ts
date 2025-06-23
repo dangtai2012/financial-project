@@ -34,6 +34,26 @@ export class CacheService implements OnModuleDestroy {
     return this.redisClient.del(key);
   }
 
+  async incrementSequenceForIdGeneration(key: string): Promise<number> {
+    const ttl = 60 * 5;
+    const result = await this.redisClient
+      .multi()
+      .incr(key)
+      .expire(key, ttl)
+      .exec();
+
+    if (
+      !result ||
+      result.length !== 2 ||
+      result[0][0] !== null ||
+      result[1][0] !== null
+    ) {
+      throw new Error('Failed to increment key');
+    }
+
+    return result[0][1] as number;
+  }
+
   async onModuleDestroy() {
     await this.redisClient.quit();
   }

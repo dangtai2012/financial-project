@@ -1,25 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
+import { CurrencyResponseDto } from './relation_wallet.response.dto';
 
-export class GetPaginatedeWalletsResponseDto {
+export class GetAllWalletResponseDto {
   @ApiProperty({ name: 'id' })
   @Expose({ name: 'id' })
   id: string;
 
   @ApiProperty({ name: 'wallet_name' })
-  @Expose({ name: 'walletName' })
+  @Expose({ name: 'wltName' })
   wallet_name: string;
 
   @ApiProperty({ name: 'currency_id' })
   @Expose({ name: 'currencyId' })
-  @Transform(({ obj }) => obj.currencyId.id)
-  currency_id: string;
+  @Type(() => CurrencyResponseDto)
+  currency: CurrencyResponseDto;
 
   @ApiProperty({ name: 'balance' })
-  @Expose({ name: 'balance' })
-  balance: number;
+  @Expose({ name: 'wltBalance' })
+  wallet_balance: number;
 
   @ApiProperty({ name: 'wallet_type' })
-  @Expose({ name: 'walletType' })
+  @Expose({ name: 'wltType' })
   wallet_type: string;
 }

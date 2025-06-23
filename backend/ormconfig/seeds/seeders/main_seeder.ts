@@ -1,29 +1,13 @@
+import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
-import { CurrencyEntity, UserEntity } from '../../../src/database/entities';
-
-const CURRENCY_DATA = [
-  { id: 'VND', name: 'Vietnamese Dong', symbol: '₫' },
-  { id: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-  { id: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-  { id: 'INR', name: 'Indian Rupee', symbol: '₹' },
-  { id: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
-  { id: 'GBP', name: 'British Pound Sterling', symbol: '£' },
-  { id: 'EUR', name: 'Euro', symbol: '€' },
-  { id: 'CHF', name: 'Swiss Franc', symbol: 'Fr' },
-  { id: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
-  { id: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
-  { id: 'USD', name: 'United States Dollar', symbol: '$' },
-  { id: 'CAD', name: 'Canadian Dollar', symbol: '$' },
-  { id: 'MXN', name: 'Mexican Peso', symbol: '$' },
-  { id: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
-  { id: 'ARS', name: 'Argentine Peso', symbol: '$' },
-  { id: 'AUD', name: 'Australian Dollar', symbol: '$' },
-  { id: 'NZD', name: 'New Zealand Dollar', symbol: '$' },
-  { id: 'PGK', name: 'Papua New Guinean Kina', symbol: 'K' },
-  { id: 'ZAR', name: 'South African Rand', symbol: 'R' },
-  { id: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
-];
+import { ETypeCategory } from '../../../src/common/constants/enums/category.enum';
+import {
+  CategoryEntity,
+  CurrencyEntity,
+  UserEntity,
+} from '../../../src/database/entities';
+import * as seedData from '../data/seed-data.json';
 
 export class MainSeeder implements Seeder {
   public async run(
@@ -32,18 +16,45 @@ export class MainSeeder implements Seeder {
   ): Promise<any> {
     await dataSource.query(`TRUNCATE TABLE users CASCADE;`);
     await dataSource.query(`TRUNCATE TABLE currencies CASCADE;`);
+    await dataSource.query(`TRUNCATE TABLE categories CASCADE;`);
 
-    await factoryManager.get(UserEntity).save();
+    // Seed users
+    const userRepository = dataSource.getRepository(UserEntity);
+    for (const userData of seedData.users) {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(userData.password, salt);
 
+      const user = userRepository.create({
+        id: `USR-${Date.now()}-001`,
+        usrName: userData.name,
+        usrEmail: userData.email,
+        usrPassword: hashedPassword,
+        isVerified: userData.isVerified,
+      });
+      await userRepository.save(user);
+    }
+
+    // Seed currencies
     const currencyRepository = dataSource.getRepository(CurrencyEntity);
-
-    for (const currencyData of CURRENCY_DATA) {
+    for (const currencyData of seedData.currencies) {
       const currency = currencyRepository.create({
         id: currencyData.id,
-        name: currencyData.name,
-        symbol: currencyData.symbol,
+        curName: currencyData.name,
+        curSymbol: currencyData.symbol,
       });
       await currencyRepository.save(currency);
+    }
+
+    // Seed categories
+    const categoryRepository = dataSource.getRepository(CategoryEntity);
+    for (const categoryData of seedData.categories) {
+      const category = categoryRepository.create({
+        id: `CAT-${Date.now()}-001`,
+        catName: categoryData.name,
+        catType: categoryData.type as ETypeCategory,
+        isDefault: categoryData.isDefault,
+      });
+      await categoryRepository.save(category);
     }
   }
 }

@@ -8,11 +8,11 @@ export class CurrencyRepository {
     private readonly currencyRepository: Repository<CurrencyEntity>,
   ) {}
 
-  // #region exist
+  // #region existsCurrencyById
   /**
    *: Check if a currency exists by its ID
    */
-  async existsById(id: string): Promise<boolean> {
+  async existsCurrencyById(id: string): Promise<boolean> {
     return await this.currencyRepository.existsBy({
       id,
     });

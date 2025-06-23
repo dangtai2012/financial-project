@@ -8,18 +8,29 @@ export class CurrencyEntity {
     type: 'char',
     length: 3,
     primary: true,
+    comment: 'Currency code',
   })
   id: string;
 
-  @Column({ name: 'name', type: 'varchar', length: 50, unique: true })
-  name: string;
+  @Column({
+    name: 'cur_name',
+    type: 'varchar',
+    length: 50,
+    unique: true,
+    comment: 'Currency name',
+  })
+  curName: string;
 
-  @Column({ name: 'symbol', type: 'varchar', length: 10 })
-  symbol: string;
+  @Column({
+    name: 'cur_symbol',
+    type: 'varchar',
+    length: 10,
+    comment: 'Currency symbol',
+  })
+  curSymbol: string;
 
   //#region Relations
   //: OneToMany
-
   @OneToMany(() => WalletEntity, (wallet) => wallet.currencyId)
   wallets: WalletEntity[];
   //#endregion

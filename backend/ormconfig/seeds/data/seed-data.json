@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "name": "Alan",
+      "email": "alan@mail.com",
+      "password": "P@ssw0rd",
+      "isVerified": true
+    }
+  ],
+  "currencies": [
+    { "id": "VND", "name": "Vietnam Dong", "symbol": "₫" },
+    { "id": "JPY", "name": "Japan Yen", "symbol": "¥" },
+    { "id": "CNY", "name": "China Yuan", "symbol": "¥" },
+    { "id": "INR", "name": "India Rupee", "symbol": "₹" },
+    { "id": "SGD", "name": "Singapore Dollar", "symbol": "S$" },
+    { "id": "GBP", "name": "Britain Pound Sterling", "symbol": "£" },
+    { "id": "EUR", "name": "Euro", "symbol": "€" },
+    { "id": "CHF", "name": "Swiss Franc", "symbol": "Fr" },
+    { "id": "SEK", "name": "Swedish Krona", "symbol": "kr" },
+    { "id": "NOK", "name": "Norwegian Krone", "symbol": "kr" },
+    { "id": "USD", "name": "America Dollar", "symbol": "$" },
+    { "id": "CAD", "name": "Canada Dollar", "symbol": "$" },
+    { "id": "MXN", "name": "Mexico Peso", "symbol": "$" },
+    { "id": "BRL", "name": "Brazil Real", "symbol": "R$" },
+    { "id": "ARS", "name": "Argentina Peso", "symbol": "$" },
+    { "id": "AUD", "name": "Australia Dollar", "symbol": "$" },
+    { "id": "NZD", "name": "New Zealand Dollar", "symbol": "$" },
+    { "id": "PGK", "name": "Papua New Guinean Kina", "symbol": "K" },
+    { "id": "ZAR", "name": "South African Rand", "symbol": "R" },
+    { "id": "NGN", "name": "Nigerian Naira", "symbol": "₦" }
+  ],
+  "categories": [
+    {
+      "name": "Other Expense",
+      "type": "expense",
+      "isDefault": true
+    },
+    {
+      "name": "Outgoing transfer",
+      "type": "expense",
+      "isDefault": true
+    },
+    {
+      "name": "Uncategorized expense",
+      "type": "expense",
+      "isDefault": true
+    },
+    {
+      "name": "Other Income",
+      "type": "income",
+      "isDefault": true
+    },
+    {
+      "name": "Incoming transfer",
+      "type": "income",
+      "isDefault": true
+    },
+    {
+      "name": "Uncategorized income",
+      "type": "income",
+      "isDefault": true
+    }
+  ]
+}

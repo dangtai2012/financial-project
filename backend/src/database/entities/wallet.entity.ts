@@ -1,24 +1,40 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { CurrencyEntity, UserEntity } from '.';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { CurrencyEntity, TransactionEntity, UserEntity } from '.';
 import { TypeOrmBaseEntity } from './typeorm_base.entity';
 
 @Entity({ name: 'wallets' })
 export class WalletEntity extends TypeOrmBaseEntity {
-  @Column({ name: 'wallet_name', type: 'varchar', length: 100 })
-  walletName: string;
+  @Column({
+    name: 'wlt_name',
+    type: 'varchar',
+    length: 100,
+    comment: 'Wallet name',
+  })
+  wltName: string;
 
-  @Column({ name: 'wallet_type', type: 'varchar', length: 10 })
-  walletType: string;
+  @Column({
+    name: 'wlt_type',
+    type: 'varchar',
+    length: 10,
+    comment: 'Wallet type (e.g. cash, bank, credit card, etc.)',
+  })
+  wltType: string;
 
-  @Column({ name: 'balance', type: 'decimal', precision: 20, scale: 2 })
-  balance: number;
-
-  @Column({ name: 'initial_balance', type: 'decimal', precision: 20, scale: 2 })
-  initialBalance: number;
+  @Column({
+    name: 'wlt_balance',
+    type: 'decimal',
+    precision: 20,
+    scale: 2,
+    comment: 'Wallet balance',
+  })
+  wltBalance: number;
 
   //#region Relations
-  //: ManyToOne
+  //: OneToMany
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.walletId)
+  transactions: TransactionEntity[];
 
+  //: ManyToOne
   @ManyToOne(() => CurrencyEntity, (currency) => currency.id)
   @JoinColumn({
     name: 'currency_id',

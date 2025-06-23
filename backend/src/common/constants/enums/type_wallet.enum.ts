@@ -1,4 +1,4 @@
 export enum ETypeWallet {
-  BASIC = 'basic',
+  CASH = 'cash',
   LINKED = 'linked',
 }
